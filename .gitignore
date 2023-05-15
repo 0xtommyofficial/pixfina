@@ -1,0 +1,30 @@
+# Django-related files
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+.env
+
+# Pipenv-related files
+Pipfile.lock
+
+# JetBrains IDE
+.idea/
+
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/frontend/.env
+
+# Build / dist
+/dist/
+/build/
+
+# Others
+.DS_Store
+*.swp
+*~
