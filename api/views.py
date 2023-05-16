@@ -1,7 +1,8 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework import status
 from django.conf import settings
 from django.contrib.auth import authenticate, logout
@@ -31,8 +32,11 @@ def register(request):
 
     if serializer.is_valid():
         try:
-            captcha_response = serializer.validated_data.get('captcha')
-            captcha_result = verify_recaptcha(captcha_response)
+            if settings.TESTING:
+                captcha_result = True
+            else:
+                captcha_response = serializer.validated_data.get('captcha')
+                captcha_result = verify_recaptcha(captcha_response)
         except KeyError:
             return Response(data={"detail": "Captcha data not found"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -72,7 +76,15 @@ def login(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# @api_view(['POST'])
+# def logout(request):
+#     logout(request)
+#     return Response({"detail": "Logged out successfully."})
+
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def logout(request):
-    logout(request)
-    return Response({"detail": "Logged out successfully."})
+    # remove the token for the currently authenticated user
+    request.user.auth_token.delete()
+    return Response({"detail": "Logged out successfully."}, status=200)
