@@ -1,14 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { useNavigate } from 'react-router-dom';
 import apiClient from './apiClient';
 import useRedirectIfLoggedIn from './useRedirectIfLoggedIn';
 
 const SignupForm = () => {
-  // if user is already logged in, redirect to landing page
-  useRedirectIfLoggedIn();
 
-  const navigate = useNavigate();
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -18,6 +14,18 @@ const SignupForm = () => {
   });
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const isMounted = React.useRef(true);
+
+  // if user is already logged in, redirect to landing page
+  useRedirectIfLoggedIn();
+
+  // before the component unmounts, update the isMounted value
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,41 +34,66 @@ const SignupForm = () => {
     });
   };
 
-  // field names must be converted to pythonic naming for django User model serializer
+  // field names must be converted to snake case for django serializer
   const camelToSnakeCase = (str) => str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // clear any previous error
     setErrorMessage('');
+
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
+      setErrorMessage('All fields are required');
+      return;
+    }
 
     if (formData.password !== passwordConfirm) {
       setErrorMessage('Passwords do not match');
       return;
     }
 
+    let recaptchaToken;
     try {
-      const recaptchaToken = await executeRecaptcha('signup');
+      recaptchaToken = await executeRecaptcha('signup');
+    } catch (error) {
+      console.error('Recaptcha execution failed:', error);
+      return;
+    }
+
+    try {
       const snakeCaseData = Object.fromEntries(
           Object.entries(formData).map(([key, value]) => [camelToSnakeCase(key), value])
       );
       const requestData = { ...snakeCaseData, captcha: recaptchaToken };
+
+      setLoading(true);
       const response = await apiClient.post('/register/', requestData);
 
       if (response.status === 201) {
         console.log('User created successfully');
         localStorage.setItem('userToken', response.data.token);
-        navigate('/landing');
+        // useRedirectIfLoggedIn() will redirect to landing page if user is logged in
       } else {
-        console.log('Error during user creation');
+        // local throw will be caught by catch block below (parent try/catch)
+        throw new Error(`Error during user creation, status code: ${response.status}`);
       }
     } catch (error) {
       console.error('Error:', error.message || error);
+      if (error.response && error.response.status === 400) {
+        setErrorMessage('Bad request, please check your data');
+      } else if (error.response && error.response.status === 500) {
+        setErrorMessage('Server error, please try again later');
+      } else {
+        setErrorMessage('Unknown error occurred');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-
   return (
-      <div>
+      <React.Fragment>
         <h2>Signup</h2>
         {errorMessage && <p>{errorMessage}</p>}
         <form onSubmit={handleSubmit}>
@@ -88,9 +121,9 @@ const SignupForm = () => {
                 onChange={(e) => setPasswordConfirm(e.target.value)}
             />
           </div>
-          <button type="submit">Signup</button>
+          <button type="submit" disabled={loading}>Signup</button>
         </form>
-      </div>
+      </React.Fragment>
   );
 };
 

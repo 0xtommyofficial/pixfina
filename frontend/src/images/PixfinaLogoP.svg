@@ -1,0 +1,15 @@
+<svg width="26.458mm" height="26.458mm" version="1.1" viewBox="0 0 26.458 26.458" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <radialGradient id="radialGradient913" cx="105.08" cy="133.71" r="77.706" gradientTransform="matrix(.15251 0 0 .15252 44.724 25.17)" gradientUnits="userSpaceOnUse">
+   <stop style="stop-color:#fff" offset="0"/>
+   <stop style="stop-color:#fff;stop-opacity:0" offset="1"/>
+  </radialGradient>
+ </defs>
+ <g transform="translate(-47.52 -32.349)">
+  <ellipse cx="60.749" cy="45.578" rx="12.987" ry="12.987" style="fill:#fca;stroke-width:.48399;stroke:#333"/>
+  <ellipse cx="60.75" cy="45.578" rx="12.452" ry="12.452" style="fill:#5dccaa;stroke-width:.46404;stroke:#333"/>
+  <ellipse cx="60.75" cy="45.563" rx="11.851" ry="11.852" style="fill:none;stroke-width:.16319;stroke:#fff"/>
+  <ellipse cx="60.75" cy="45.563" rx="11.851" ry="11.852" style="fill:url(#radialGradient913);opacity:.87582"/>
+  <text transform="scale(.98599 1.0142)" x="50.620655" y="52.39986" style="fill:#2b1100;font-family:sans-serif;font-size:15.113px;line-height:1.25;stroke-width:.37783" xml:space="preserve"><tspan x="50.620655" y="52.39986" style="fill:#2b1100;font-family:'Vladimir Script';font-size:21.931px;stroke-width:.37783">P</tspan></text>
+ </g>
+</svg>

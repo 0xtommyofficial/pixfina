@@ -3,8 +3,9 @@
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 50vmin;
   pointer-events: none;
+  background-color: pink;
 }
 
 @media (prefers-reduced-motion: no-preference) {
