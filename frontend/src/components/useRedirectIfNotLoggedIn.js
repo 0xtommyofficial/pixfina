@@ -7,7 +7,7 @@ export default function useRedirectIfNotLoggedIn() {
     useEffect(() => {
         const token = localStorage.getItem('userToken');
         if (!token) {
-            navigate('/');
+            navigate('/Login');
         }
     }, [navigate]);
 }

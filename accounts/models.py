@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 
 
 class CustomUserManager(BaseUserManager):
+    """Custom user model manager where email is the unique identifier"""
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
@@ -22,6 +24,8 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    """Custom user model"""
+
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
@@ -43,6 +47,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name="custom_user_set",
         related_query_name="custom_user",
+    )
+
+    favourites = models.ManyToManyField(
+        'media.StockMedia',
+        blank=True,
+        related_name="favourited_by",
     )
 
     objects = CustomUserManager()

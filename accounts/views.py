@@ -12,24 +12,31 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 from .serializers import SignupSerializer, LoginSerializer, UserDetailSerializer, \
     PasswordChangeSerializer, EmailChangeSerializer
+from .models import CustomUser
+from media.serializers import StockMediaSerializer
+from media.models import StockMedia
 
 
 logger = logging.getLogger('api_app')
 
 
 class RegisterThrottle(AnonRateThrottle):
+    """Throttle registration requests"""
     rate = '100/hour'
 
 
 class LoginThrottle(AnonRateThrottle):
+    """Throttle login requests"""
     rate = '250/hour'
 
 
 class PasswordChangeThrottle(UserRateThrottle):
+    """Throttle password change requests"""
     rate = '3/hour'
 
 
 def verify_recaptcha(captcha_response):
+    """Verify the captcha response from Google"""
     data = {
         'secret': settings.RECAPTCHA_SECRET_KEY,
         'response': captcha_response,
@@ -46,6 +53,7 @@ def verify_recaptcha(captcha_response):
 @permission_classes([AllowAny])
 @throttle_classes([RegisterThrottle])
 def register(request):
+    """Register user"""
     serializer = SignupSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -80,6 +88,7 @@ def register(request):
 @permission_classes([AllowAny])
 @throttle_classes([LoginThrottle])
 def login(request):
+    """Login"""
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         email = serializer.validated_data['email']
@@ -101,6 +110,7 @@ def login(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def logout(request):
+    """Logout"""
     # remove the token for the currently authenticated user
     request.user.auth_token.delete()
     return Response({'detail': 'Logged out successfully.'}, status=200)
@@ -111,6 +121,7 @@ def logout(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def user_detail(request):
+    """Get or update user details."""
     if request.method == 'GET':
 
         serializer = UserDetailSerializer(request.user)
@@ -135,6 +146,7 @@ def user_detail(request):
 @permission_classes([IsAuthenticated])
 @throttle_classes([PasswordChangeThrottle])
 def password_change(request):
+    """Change user's password."""
     serializer = PasswordChangeSerializer(data=request.data)
     if serializer.is_valid():
         # Check old password
@@ -153,6 +165,7 @@ def password_change(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def email_change(request):
+    """Change user's email address."""
     serializer = EmailChangeSerializer(data=request.data)
     if serializer.is_valid():
         # Check password
@@ -171,5 +184,35 @@ def email_change(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def user_delete(request):
+    """Delete user account."""
     request.user.delete()
     return Response({'detail': 'User deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def favourites_list(request):
+    """Return a list of user's favourite stock media."""
+    if request.method == 'GET':
+        user = CustomUser.objects.get(email=request.user)
+        favourites = user.favourites.all()
+        serializer = StockMediaSerializer(favourites, many=True)
+        return Response(serializer.data)
+
+
+@api_view(['POST', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def favourite_media(request, media_id):
+    """Handle POST and DELETE requests for favourite media."""
+    user = CustomUser.objects.get(email=request.user)
+    media_item = StockMedia.objects.get(id=media_id)
+
+    if request.method == 'POST':
+        user.favourites.add(media_item)
+        return Response(status=status.HTTP_201_CREATED)
+
+    elif request.method == 'DELETE':
+        user.favourites.remove(media_item)
+        return Response(status=status.HTTP_204_NO_CONTENT)

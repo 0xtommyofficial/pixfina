@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import apiClient from './apiClient';
-import { useNavigate } from 'react-router-dom';
-import useRedirectIfLoggedIn from './useRedirectIfLoggedIn';
+import useCheckLogin from './useCheckLogin';
 
-const Login = () => {
-
-  // if user is already logged in, redirect to landing page
-  useRedirectIfLoggedIn();
+const Login = ({ onSuccess }) => {
+  const isLoggedIn = useCheckLogin();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,9 +28,10 @@ const Login = () => {
       if (response.status === 200) {
         // save token and handle login state
         localStorage.setItem('userToken', response.data.token);
+        window.dispatchEvent(new Event('login'));
 
-        // navigate to the landing page
-        navigate('/landing');
+        // call onSuccess callback
+        if (onSuccess) onSuccess();
       } else {
         // handle server errors
         setError('Failed to login. Please try again.');
@@ -52,6 +49,11 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // If the user is already logged in, we can display a message
+  if (isLoggedIn) {
+    return <p>You are already logged in.</p>;
+  }
 
   return (
       <React.Fragment>

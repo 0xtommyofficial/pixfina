@@ -7,6 +7,8 @@ User = get_user_model()
 
 
 class SignupSerializer(serializers.ModelSerializer):
+    """Serializer for signup endpoint"""
+
     captcha = serializers.CharField(write_only=True)
 
     class Meta:
@@ -36,17 +38,23 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
+    """Serializer for login endpoint"""
+
     email = serializers.EmailField()
     password = serializers.CharField()
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
+    """Serializer for user detail endpoint"""
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
 
 
 class PasswordChangeSerializer(serializers.Serializer):
+    """Serializer for password change endpoint"""
+
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
     new_password_repeat = serializers.CharField(required=True)
@@ -62,6 +70,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 class EmailChangeSerializer(serializers.Serializer):
+    """Serializer for email change endpoint"""
+
     password = serializers.CharField(required=True)
     new_email = serializers.EmailField(required=True)
     # TODO: repeat email check to ensure user does not misspell their new email

@@ -32,6 +32,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--apricot);
+  box-sizing: border-box;
+}
 button {
   border-color: var(--turquoise);
   background-color: var(--black);
@@ -68,21 +76,22 @@ code {
   justify-content: center;
   align-items: center;
 }
-.padded-top {
+.padding-top {
   padding-top: .5rem;
 }
-.padded-top-left {
-  padding-top: .5rem;
+.padding-left {
   padding-left: .5rem;
 }
 .padding-right {
   padding-right: .5rem;
 }
-nav {
+.gapped-row {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--apricot);
-  box-sizing: border-box;
+  gap: 1rem;
+}
+.gapped-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }

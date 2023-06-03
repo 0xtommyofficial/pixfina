@@ -57,7 +57,9 @@ const SignupForm = () => {
     try {
       recaptchaToken = await executeRecaptcha('signup');
     } catch (error) {
-      console.error('Recaptcha execution failed:', error);
+      if (isMounted.current) {
+        console.error('Recaptcha execution failed:', error);
+      }
       return;
     }
 
