@@ -11,9 +11,8 @@ class StockMedia(models.Model):
     title = models.CharField(max_length=200, blank=True)
     description = models.TextField()
     media_type = models.CharField(max_length=1, choices=MEDIA_CHOICES, default='P')
-    # add a file field
-    file = models.FileField(upload_to='stock_media')
-
+    preview_image = models.FileField(upload_to='stock_media', null=True, blank=True)
+    video_url = models.URLField(blank=True, null=True, max_length=200)
 
 
     def save(self, *args, **kwargs):
