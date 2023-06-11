@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from './apiClient';
 import Login from "./Login";
 import useCheckLogin from './useCheckLogin';
 
 function Stock() {
+    const navigate = useNavigate();
     const [mediaItems, setMediaItems] = useState([]);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [justLoggedIn, setJustLoggedIn] = useState(false);
-
     const isLoggedIn = useCheckLogin();
+    const renderMedia = (media) => {
+        if (media.media_type === 'P' && media.preview_image) {
+            return <img className="media-image" src={media.preview_image} alt={media.title} />;
+        } else if (media.media_type === 'V' && media.video_url) {
+            return <iframe className="media-video" src={media.video_url} title={media.title} />;
+        }
+        return null;
+    };
 
     useEffect(() => {
         if (isLoggedIn || justLoggedIn) {
@@ -54,16 +63,21 @@ function Stock() {
     }
 
     return (
-        <div>
+        <div className="media-container">
             {mediaItems.map((media) => (
-                <div key={media.id}>
-                    <img src={media.imageUrl} alt={media.title} />
-                    <button onClick={() => handleFavourite(media.id, media.favourite)}>
-                        {media.favourite ? 'Unfavourite' : 'Favourite'}
-                    </button>
-                    <button onClick={() => window.location.href='/licence_quote'}>Request License Quote</button>
+                <div key={media.id} className="media-card">
+                    {renderMedia(media)}
+                    <div className="media-info">
+                        <h3 className="media-title">{media.title}</h3>
+                        <button className="media-button" onClick={() => handleFavourite(media.id, media.favourite)}>
+                            {media.favourite ? 'Unfavourite' : 'Favourite'}
+                        </button>
+                    </div>
                 </div>
             ))}
+            <button className="media-button" onClick={() => navigate('/LicenceQuote')}>
+                Request License Quote
+            </button>
         </div>
     );
 }

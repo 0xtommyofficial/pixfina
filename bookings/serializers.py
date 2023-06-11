@@ -8,14 +8,15 @@ class LicenceQuoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LicenceQuote
-        fields = ['user', 'media', 'message']
+        fields = ['media', 'name', 'message']
+        read_only_fields = ['user']
 
 
 class EditorialBookingSerializer(serializers.ModelSerializer):
     """Serializer for EditorialBooking model"""
     class Meta:
         model = EditorialBooking
-        fields = ['name', 'email', 'phone_number', 'media_type', 'message']
+        fields = ['media_type', 'name', 'phone_number', 'message']
         read_only_fields = ['user']
 
 
@@ -23,4 +24,5 @@ class HeadshotBookingSerializer(serializers.ModelSerializer):
     """Serializer for HeadshotBooking model"""
     class Meta:
         model = HeadshotBooking
-        fields = ['name', 'email', 'phone_number', 'message']
+        fields = ['name', 'phone_number', 'message']
+        read_only_fields = ['user']

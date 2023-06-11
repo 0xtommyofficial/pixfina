@@ -7,9 +7,10 @@ from accounts.views import (
     email_change,
     user_delete,
     favourites_list,
-    favourite_media
+    favourite_media,
+    generate_captcha,
 )
-from bookings.views import licence_quote_list, editorial_booking_list
+from bookings.views import licence_quote_list, editorial_booking_list, headshot_booking_list
 from media.views import stock_media_list
 
 
@@ -23,7 +24,9 @@ urlpatterns = [
     path('user_delete/', user_delete, name='user_delete'),
     path('licence_quotes/', licence_quote_list, name='licence_quotes'),
     path('editorial_bookings/', editorial_booking_list, name='editorial_bookings'),
+    path('headshot_bookings/', headshot_booking_list, name='headshot_bookings'),
     path('favourites/', favourites_list, name='favourites'),
     path('favourite_media/<int:media_id>/', favourite_media, name='favourite_media'),
     path('stock_media/', stock_media_list, name='stock_media'),
+    path('generate_captcha/', generate_captcha, name='generate_captcha'),
 ]

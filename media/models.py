@@ -14,7 +14,6 @@ class StockMedia(models.Model):
     preview_image = models.FileField(upload_to='stock_media', null=True, blank=True)
     video_url = models.URLField(blank=True, null=True, max_length=200)
 
-
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # save the model first to get an id

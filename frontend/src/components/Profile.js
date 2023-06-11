@@ -17,6 +17,8 @@ const Profile = () => {
     const [isEmailLoading, setEmailLoading] = useState(false);
     const [isPasswordLoading, setPasswordLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [favourites, setFavourites] = useState([]);
+    const [selectedFavourite, setSelectedFavourite] = useState(null);
 
     const isEmailValid = (email) => {
         const re = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
@@ -39,7 +41,28 @@ const Profile = () => {
                     setError('An unexpected error occurred.');
                 }
             });
+
+        // get the user's favourites
+        apiClient.get('/favourites/')
+            .then(res => {
+                setFavourites(res.data);
+                // set the first favourite as the selected one
+                if (res.data.length > 0) {
+                    setSelectedFavourite(res.data[0]);
+                }
+            })
+            .catch(err => { console.error(err); });
     }, []);
+
+    const handleFavouriteSelection = (e) => {
+        const selectedFav = favourites.find(fav => fav.id === Number(e.target.value));
+        setSelectedFavourite(selectedFav);
+    };
+    const handleFavouriteRemove = (mediaId) => {
+        apiClient.delete(`/favourite_media/${mediaId}/`)
+            .then(() => setFavourites(favourites.filter(fav => fav.id !== mediaId)))
+            .catch(err => console.error(err));
+    };
 
     const handleEmailChange = () => {
         if (!oldPassword || !email || !repeatEmail || email !== repeatEmail) {
@@ -110,7 +133,7 @@ const Profile = () => {
                     <input type="password" placeholder="Enter your password" onChange={e => setOldPassword(e.target.value)} />
                     <input type="email" placeholder="Enter new email" onChange={e => setEmail(e.target.value)} />
                     <input type="email" placeholder="Repeat new email" onChange={e => setRepeatEmail(e.target.value)} />
-                    <button onClick={handleEmailChange}>Submit</button>
+                    <button onClick={handleEmailChange} disabled={isEmailLoading}>Submit</button>
                 </div>
             }
             <button onClick={() => setEmailEditing(!isEmailEditing)}>Change Email</button>
@@ -119,10 +142,26 @@ const Profile = () => {
                     <input type="password" placeholder="Old Password" onChange={e => setOldPassword(e.target.value)} />
                     <input type="password" placeholder="New Password" onChange={e => setNewPassword(e.target.value)} />
                     <input type="password" placeholder="Repeat New Password" onChange={e => setRepeatPassword(e.target.value)} />
-                    <button onClick={handlePasswordChange}>Submit</button>
+                    <button onClick={handlePasswordChange} disabled={isPasswordLoading}>Submit</button>
+
                 </div>
             }
             <button onClick={() => setPasswordEditing(!isPasswordEditing)}>Change Password</button>
+            <h2>Favourites</h2>
+            {favourites.length > 0 ?
+                <div>
+                    <select onChange={handleFavouriteSelection}>
+                        {favourites.map(favourite => (
+                            <option key={favourite.id} value={favourite.id}>{favourite.title}</option>
+                        ))}
+                    </select>
+                    {selectedFavourite && <div>
+                        <h3>{selectedFavourite.title}</h3>
+                        <img src={selectedFavourite.previewImageUrl} alt={selectedFavourite.title} />
+                        <button onClick={() => handleFavouriteRemove(selectedFavourite.id)}>Remove</button>
+                    </div>}
+                </div>
+                : <p>No favourites found</p>}
             <button onClick={() => navigate('/landing')}>Home</button>
         </React.Fragment>
     );

@@ -1,22 +1,27 @@
 import React from 'react';
-// import useRedirectIfLoggedIn from './useRedirectIfLoggedIn';
 import { ReactComponent as Logo } from '../images/PixfinaLogo.svg'
 import {Link} from "react-router-dom";
+import placeholderImage from '../images/1080x1080.png';
 
 function Main() {
-    // if user is already logged in, redirect to landing page
-    // useRedirectIfLoggedIn();
 
     return (
         <React.Fragment>
             <div className="centered-column half-rem-line-height">
                 <div className="padded-top">
-                    <Logo style={{height: "25vmax", width: "25vmax"}}/>
+                    <Logo className="logo"/>
                 </div>
                 <h1>Photography and Video</h1>
-                <h2>Headshots | Editorial | Stock</h2>
+                <div className="padding-top">
+                {/*  display 3 images, in mobile they will be in a column, in desktop a row  */}
+                    <div className="main-image-grid">
+                        <img className="media-image" src={placeholderImage} alt="headshot" />
+                        <img className="media-image" src={placeholderImage} alt="editorial" />
+                        <img className="media-image" src={placeholderImage} alt="stock" />
+                    </div>
+                </div>
                 <nav>
-                    <div className="padding-top gapped-column" >
+                    <div className="padding-top gapped-row" >
                         <Link to="/HeadshotBooking">
                             <button>Headshots</button>
                         </Link>

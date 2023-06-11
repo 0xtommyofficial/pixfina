@@ -1,140 +1,239 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSync } from '@fortawesome/free-solid-svg-icons';
 import apiClient from './apiClient';
 import useRedirectIfLoggedIn from './useRedirectIfLoggedIn';
 
 const SignupForm = () => {
 
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-  });
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const isMounted = React.useRef(true);
-
-  // if user is already logged in, redirect to landing page
-  useRedirectIfLoggedIn();
-
-  // before the component unmounts, update the isMounted value
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        captcha: '',
     });
-  };
+    const [captchaImg, setCaptchaImg] = useState(null);
+    const [passwordConfirm, setPasswordConfirm] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false);
+    const isMounted = React.useRef(true);
 
-  // field names must be converted to snake case for django serializer
-  const camelToSnakeCase = (str) => str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+    // if user is already logged in, redirect to landing page
+    useRedirectIfLoggedIn();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    // before the component unmounts, update the isMounted value
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
-    // clear any previous error
-    setErrorMessage('');
+    const fetchCaptcha = async () => {
+        try {
+            const response = await apiClient.get('/generate_captcha/', { responseType: 'blob' });
+            const objectUrl = URL.createObjectURL(response.data);
+            setCaptchaImg(objectUrl);
+        } catch (error) {
+            console.error('Error fetching captcha:', error);
+        }
+    };
 
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      setErrorMessage('All fields are required');
-      return;
-    }
+    const refreshCaptcha = () => {
+        // reset the captcha field
+        setFormData({ ...formData, captcha: '' });
 
-    if (formData.password !== passwordConfirm) {
-      setErrorMessage('Passwords do not match');
-      return;
-    }
+        // fetch a new captcha image
+        fetchCaptcha().catch((err) => console.log('Error calling fetchCaptcha: ', err));
+    };
 
-    let recaptchaToken;
-    try {
-      recaptchaToken = await executeRecaptcha('signup');
-    } catch (error) {
-      if (isMounted.current) {
-        console.error('Recaptcha execution failed:', error);
-      }
-      return;
-    }
 
-    try {
-      const snakeCaseData = Object.fromEntries(
-          Object.entries(formData).map(([key, value]) => [camelToSnakeCase(key), value])
-      );
-      const requestData = { ...snakeCaseData, captcha: recaptchaToken };
 
-      setLoading(true);
-      const response = await apiClient.post('/register/', requestData);
+    // fetch captcha image
+    useEffect(() => {
+        fetchCaptcha().catch((err) => console.log('Error calling fetchCaptcha: ', err));
 
-      if (response.status === 201) {
-        console.log('User created successfully');
-        localStorage.setItem('userToken', response.data.token);
-        // useRedirectIfLoggedIn() will redirect to landing page if user is logged in
-      } else {
-        // local throw will be caught by catch block below (parent try/catch)
-        throw new Error(`Error during user creation, status code: ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Error:', error.message || error);
-      if (error.response && error.response.status === 400) {
-        setErrorMessage('Bad request, please check your data');
-      } else if (error.response && error.response.status === 500) {
-        setErrorMessage('Server error, please try again later');
-      } else {
-        setErrorMessage('Unknown error occurred');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+        return () => {
+            // revoke the object url to avoid memory leaks
+            if (captchaImg) {
+                URL.revokeObjectURL(captchaImg);
+            }
+        };
+    }, []);
 
-  return (
-      <React.Fragment>
-        <h2>Signup</h2>
-        {errorMessage && <p>{errorMessage}</p>}
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label>First Name:</label>
-            <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} />
-          </div>
-          <div>
-            <label>Last Name:</label>
-            <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} />
-          </div>
-          <div>
-            <label>Email:</label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} />
-          </div>
-          <div>
-            <label>Password:</label>
-            <input type="password" name="password" value={formData.password} onChange={handleChange} />
-          </div>
-          <div>
-            <label>Confirm Password:</label>
-            <input
-                type="password"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-            />
-          </div>
-          <button type="submit" disabled={loading}>Signup</button>
-        </form>
-      </React.Fragment>
-  );
+
+    // update form data when user types
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    // field names must be converted to snake case for django serializer
+    const camelToSnakeCase = (str) => str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // clear any previous error
+        setErrorMessage('');
+
+        if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim() || !formData.captcha.trim()) {
+            setErrorMessage('All fields are required');
+            return;
+        }
+
+        if (formData.password !== passwordConfirm) {
+            setErrorMessage('Passwords do not match');
+            return;
+        }
+
+        try {
+            const snakeCaseData = Object.fromEntries(
+                Object.entries(formData).map(([key, value]) => [camelToSnakeCase(key), value])
+            );
+
+            setLoading(true);
+            const response = await apiClient.post('/register/', snakeCaseData);
+
+            if (response.status === 201) {
+                console.log('User created successfully');
+                localStorage.setItem('userToken', response.data.token);
+                navigate('/');
+            } else {
+                // local throw will be caught by catch block below (parent try/catch)
+                throw new Error(`Error during user creation, status code: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error:', error.message || error);
+            if (error.response && error.response.status === 400) {
+                for (let fieldName in error.response.data) {
+                    const fieldErrors = error.response.data[fieldName];
+                    for (let err of fieldErrors) {
+                        if (err.includes('already exists')) {
+                            setErrorMessage(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} ${err}`);
+                            return;
+                        }
+                    }
+                }
+                setErrorMessage('Bad request, please check your data');
+            } else if (error.response && error.response.status === 500) {
+                setErrorMessage('Server error, please try again later');
+            } else {
+                setErrorMessage('Unknown error occurred');
+            }
+        } finally {
+            if (isMounted.current) {
+                setLoading(false);
+            }
+        }
+    };
+
+    return (
+        <React.Fragment>
+            <form onSubmit={handleSubmit} className="padded-container">
+                <h1>Signup</h1>
+                <h3>Please sign up to make bookings.</h3>
+                <h3>You can then use your account to download your media when it is ready.</h3>
+                {errorMessage && <p>{errorMessage}</p>}
+                <div className="form-container">
+                    <div className="form-row">
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>First Name:</h3>
+                                    <input className="form-input" type="text" name="firstName" value={formData.firstName} onChange={handleChange} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>Last Name:</h3>
+                                    <input className="form-input" type="text" name="lastName" value={formData.lastName} onChange={handleChange} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>Email:</h3>
+                                    <input className="form-input" type="email" name="email" value={formData.email} onChange={handleChange} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>Password:</h3>
+                                    <input
+                                        className="form-input"
+                                        type="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>Confirm Password:</h3>
+                                    <input
+                                        className="form-input"
+                                        type="password"
+                                        value={passwordConfirm}
+                                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div className="captcha-group">
+                                    {captchaImg && <img src={captchaImg} alt="Captcha" />}
+                                    <button className="form-button" type="button" onClick={refreshCaptcha}>
+                                        <FontAwesomeIcon icon={faSync} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="full-width padded-container">
+                            <div className="form-group">
+                                <div>
+                                    <h3>Captcha:</h3>
+                                    <input
+                                        className="form-input"
+                                        type="text"
+                                        name="captcha"
+                                        value={formData.captcha}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="form-row pegged-right">
+                        <div className="form-group">
+                            <button className="form-button" type="submit" disabled={loading}>Signup</button>
+                        </div>
+                    </div>
+                </div>
+
+
+            </form>
+        </React.Fragment>
+    );
 };
 
-const Signup = () => {
-  return (
-      <GoogleReCaptchaProvider reCaptchaKey={process.env.REACT_APP_RECAPTCHA_KEY}>
-        <SignupForm />
-      </GoogleReCaptchaProvider>
-  );
-};
-
-export default Signup;
+export default SignupForm;

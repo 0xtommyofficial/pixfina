@@ -9,7 +9,7 @@ const Logout = () => {
         apiClient.post('/logout/')
             .then(response => {
                 if (response.status === 200) {
-                    localStorage.removeItem('userToken');
+
                     window.dispatchEvent(new Event('logout'));
                     navigate('/');
                 } else {
@@ -18,6 +18,9 @@ const Logout = () => {
             })
             .catch(error => {
                 console.error('Error during logout: ', error);
+            })
+            .finally(() => {
+                localStorage.removeItem('userToken');
             });
     }, [navigate]);
 

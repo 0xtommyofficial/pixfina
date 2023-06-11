@@ -14,7 +14,6 @@ import os
 from pathlib import Path
 from decouple import config
 
-
 TESTING = 'test' in sys.argv
 
 SECRET_KEY = config('SECRET_KEY')
@@ -62,8 +61,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+SESSION_SAVE_EVERY_REQUEST = True
+
 # NOTE: to enable others to make requests cross-origin to say the api you have to use
 #       signals to check if request is enabled and if so return the api url
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+]
+
 CORS_ALLOWED_ORIGINS = [
     'https://pixfina.com',
     "http://127.0.0.1",
@@ -73,10 +80,17 @@ CORS_ALLOWED_ORIGINS = [
 
 ROOT_URLCONF = 'main.urls'
 
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+SENDGRID_API_KEY = config('SENDGRID_API_KEY')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+ADMIN_EMAIL = config('ADMIN_EMAIL')
+EMAIL_SIGNATURE = '\\n\\nKind Regards,\\nPixfina'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
+        # below is for React frontend
         # 'DIRS': [os.path.join(BASE_DIR, 'frontend/build')],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -172,14 +186,13 @@ LOGGING = {
             'level': 'ERROR',  # only log error messages
             'propagate': True,
         },
-        'api_app': {  # custom logger for your manual log messages
+        'api_app': {  # custom logger for manual log messages
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': False,
         },
     },
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

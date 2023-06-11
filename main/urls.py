@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+# below is for serving the React app
 # from django.views.generic import TemplateView
 
 urlpatterns = [

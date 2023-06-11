@@ -1,5 +1,9 @@
 import requests
 import logging
+import random
+import string
+from captcha.image import ImageCaptcha
+from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -10,6 +14,7 @@ from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
+from django.core.mail import send_mail
 from .serializers import SignupSerializer, LoginSerializer, UserDetailSerializer, \
     PasswordChangeSerializer, EmailChangeSerializer
 from .models import CustomUser
@@ -45,8 +50,25 @@ def verify_recaptcha(captcha_response):
     try:
         result = response.json()
         return result.get('success', False)
-    except ValueError:
+    except (ValueError, TypeError) as error:
+        logger.error(error)
         return False
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def generate_captcha(request):
+    image_generator = ImageCaptcha()
+
+    # generate a random string for the captcha text
+    captcha_text = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+
+    # save the captcha text in the user's session
+    request.session['captcha'] = captcha_text
+    # generate the captcha image
+    data = image_generator.generate(captcha_text)
+
+    return HttpResponse(data, content_type='image/png')
 
 
 @api_view(['POST'])
@@ -61,8 +83,9 @@ def register(request):
             if settings.TESTING:
                 captcha_result = True
             else:
-                captcha_response = serializer.validated_data.get('captcha')
-                captcha_result = verify_recaptcha(captcha_response)
+                captcha_input = serializer.validated_data.get('captcha')
+                captcha_stored = request.session.get('captcha', None)
+                captcha_result = (captcha_input.lower() == captcha_stored.lower())
         except KeyError:
             logger.error('Captcha data not found')
             return Response(data={'detail': 'Captcha data not found'}, status=status.HTTP_400_BAD_REQUEST)
@@ -78,6 +101,14 @@ def register(request):
         user.save()
         token = Token.objects.create(user=user)
         logger.info(f'User {user.email} registered successfully')
+
+        send_mail(
+            'Welcome!',
+            f'Your account has been created successfully. {settings.EMAIL_SIGNATURE}',
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
         return Response({'token': token.key}, status=status.HTTP_201_CREATED)
     else:
         logger.error(f'Registration failed: {serializer.errors}')
@@ -155,6 +186,16 @@ def password_change(request):
         # set_password also hashes the password that the user will get
         request.user.set_password(serializer.data.get('new_password'))
         request.user.save()
+
+        # send confirmation email to user
+        send_mail(
+            'Pixfina - Password change confirmation',
+            f'Your password has been changed successfully. {settings.EMAIL_SIGNATURE}',
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email],
+            fail_silently=False,
+        )
+
         return Response(status=status.HTTP_204_NO_CONTENT)
     logger.error(f'Password change failed: {serializer.errors}')
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -171,9 +212,18 @@ def email_change(request):
         # Check password
         if not check_password(serializer.data.get('password'), request.user.password):
             return Response({'password': ['Wrong password.']}, status=status.HTTP_400_BAD_REQUEST)
-        # TODO: Send confirmation email to new email address
+        # set new email address
         request.user.email = serializer.data.get('new_email')
         request.user.save()
+
+        # send confirmation email to new email address
+        send_mail(
+            'Pixfina - Email address change confirmation',
+            f'Your email address has been changed successfully. {settings.EMAIL_SIGNATURE}',
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email],
+            fail_silently=False,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
     logger.error(f'Email change failed: {serializer.errors}')
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
