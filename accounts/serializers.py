@@ -74,4 +74,3 @@ class EmailChangeSerializer(serializers.Serializer):
 
     password = serializers.CharField(required=True)
     new_email = serializers.EmailField(required=True)
-    # TODO: repeat email check to ensure user does not misspell their new email

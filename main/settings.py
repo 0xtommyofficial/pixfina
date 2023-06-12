@@ -17,8 +17,6 @@ from decouple import config
 TESTING = 'test' in sys.argv
 
 SECRET_KEY = config('SECRET_KEY')
-RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY')
-RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify'
 DB_NAME = config('DB_NAME')
 DB_HOST = config('DB_HOST')
 DB_PORT = config('DB_PORT')
