@@ -47,7 +47,6 @@ const Login = ({ onSuccess }) => {
     }
   };
 
-  // If the user is already logged in, we can display a message
   useEffect(() => {
     if (isLoggedIn) {
       navigate('/');

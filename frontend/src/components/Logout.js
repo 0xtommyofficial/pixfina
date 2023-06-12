@@ -24,7 +24,6 @@ const Logout = () => {
             });
     }, [navigate]);
 
-    // render a "Logging out..." message or a spinner
     return <div>Logging out...</div>;
 };
 
