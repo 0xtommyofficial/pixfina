@@ -40,21 +40,6 @@ class PasswordChangeThrottle(UserRateThrottle):
     rate = '3/hour'
 
 
-def verify_recaptcha(captcha_response):
-    """Verify the captcha response from Google"""
-    data = {
-        'secret': settings.RECAPTCHA_SECRET_KEY,
-        'response': captcha_response,
-    }
-    response = requests.post(settings.RECAPTCHA_VERIFY_URL, data=data)
-    try:
-        result = response.json()
-        return result.get('success', False)
-    except (ValueError, TypeError) as error:
-        logger.error(error)
-        return False
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def generate_captcha(request):
@@ -65,6 +50,7 @@ def generate_captcha(request):
 
     # save the captcha text in the user's session
     request.session['captcha'] = captcha_text
+
     # generate the captcha image
     data = image_generator.generate(captcha_text)
 
@@ -147,7 +133,6 @@ def logout(request):
     return Response({'detail': 'Logged out successfully.'}, status=200)
 
 
-# User detail view
 @api_view(['GET', 'PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -171,7 +156,6 @@ def user_detail(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Password change view
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -201,7 +185,6 @@ def password_change(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Email change view
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -229,7 +212,6 @@ def email_change(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# User delete view
 @api_view(['DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])

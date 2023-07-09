@@ -7,6 +7,7 @@ function useCheckLogin() {
         const checkLoginStatus = () => {
             const token = localStorage.getItem('userToken');
             setIsLoggedIn(!!token);
+            // console.log('isLoggedIn: ', !!token);
         };
 
         checkLoginStatus();

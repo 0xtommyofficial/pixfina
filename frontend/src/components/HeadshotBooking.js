@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import apiClient from './apiClient';
 import Login from "./Login";
 import useCheckLogin from './useCheckLogin';
+import HeadShotGallery from "./headshotGallery";
 
 
 const HeadshotBooking = () => {
@@ -23,17 +24,38 @@ const HeadshotBooking = () => {
             message,
         };
 
-        apiClient.post('/headshot_booking/', booking)
-            .then(res => console.log(res.data));
+        apiClient.post('/headshot_bookings/', booking)
+            // .then(res => console.log(res.data));
+            .then((res) => {
+                alert("Your booking request has been submitted!");
+                setName('');
+                setEmail('');
+                setPhoneNumber('');
+                setMessage('');
+            });
     }
 
     if (!isLoggedIn && !justLoggedIn) {
-        return <Login onSuccess={() => setJustLoggedIn(true)} />;
+        return (
+            <React.Fragment>
+                <div className="half-rem-line-height centered-column">
+                    <h1>Headshot Booking</h1>
+                    <h3>Specialising in natural light portraits.</h3>
+                </div>
+                <HeadShotGallery />
+                <Login onSuccess={() => setJustLoggedIn(true)} />
+            </React.Fragment>
+        );
     }
 
     return (
         <React.Fragment>
-            <form onSubmit={handleSubmit} className="padded-container full-width">
+            <div className="half-rem-line-height centered-column">
+                <h1>Headshot Booking</h1>
+                <h3>Specialising in natural light portraits.</h3>
+            </div>
+            <HeadShotGallery />
+            <form onSubmit={handleSubmit} className="padded-container">
                 <h1>Headshot Booking</h1>
                 <h3>Specialising in natural light portraits.</h3>
                 <div className="form-container">
@@ -41,13 +63,19 @@ const HeadshotBooking = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Name</h3>
-                                <input className="form-input" type="text" onChange={e => setName(e.target.value)} placeholder="Name" />
+                                <input className="form-input" type="text"
+                                       onChange={e => setName(e.target.value)}
+                                       placeholder="Name"
+                                       value={name} />
                             </div>
                         </div>
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Email</h3>
-                                <input className="form-input" type="email" onChange={e => setEmail(e.target.value)} placeholder="Email" />
+                                <input className="form-input" type="email"
+                                       onChange={e => setEmail(e.target.value)}
+                                       placeholder="Email"
+                                       value={email} />
                             </div>
                         </div>
                     </div>
@@ -55,7 +83,10 @@ const HeadshotBooking = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Phone Number</h3>
-                                <input className="form-input" type="text" onChange={e => setPhoneNumber(e.target.value)} placeholder="Phone Number" />
+                                <input className="form-input" type="text"
+                                       onChange={e => setPhoneNumber(e.target.value)}
+                                       placeholder="Phone Number"
+                                       value={phoneNumber} />
                             </div>
                         </div>
                     </div>
@@ -63,7 +94,11 @@ const HeadshotBooking = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Message</h3>
-                                <textarea className="disableResize form-input message-box" onChange={e => setMessage(e.target.value)} placeholder="Message"></textarea>
+                                <textarea className="disableResize form-input message-box"
+                                          onChange={e => setMessage(e.target.value)}
+                                          placeholder="Message"
+                                          value={message} >
+                                </textarea>
                             </div>
                         </div>
                     </div>

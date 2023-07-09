@@ -19,7 +19,10 @@ class StockMedia(models.Model):
         # save the model first to get an id
         if not self.title:
             # if the title is not set, set it to the default
-            self.title = f'PF{self.id}'
+            counter = self.id
+            while StockMedia.objects.filter(title=f'PF{counter}').exists():
+                counter += 1
+            self.title = f'PF{counter}'
             super().save(*args, **kwargs)
 
     def __str__(self):

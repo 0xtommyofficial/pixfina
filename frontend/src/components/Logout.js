@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import apiClient from './apiClient';
 import { useNavigate } from 'react-router-dom';
+import { handleLogout } from './helpers';
 
 const Logout = () => {
     const navigate = useNavigate();
@@ -9,8 +10,7 @@ const Logout = () => {
         apiClient.post('/logout/')
             .then(response => {
                 if (response.status === 200) {
-
-                    window.dispatchEvent(new Event('logout'));
+                    handleLogout();
                     navigate('/');
                 } else {
                     console.error('Logout failed: ', response);
@@ -18,9 +18,8 @@ const Logout = () => {
             })
             .catch(error => {
                 console.error('Error during logout: ', error);
-            })
-            .finally(() => {
-                localStorage.removeItem('userToken');
+                handleLogout()
+                navigate('/');
             });
     }, [navigate]);
 

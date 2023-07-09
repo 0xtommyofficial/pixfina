@@ -6,7 +6,6 @@ import apiClient from './apiClient';
 import useRedirectIfLoggedIn from './useRedirectIfLoggedIn';
 
 const SignupForm = () => {
-
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         firstName: '',
@@ -49,8 +48,6 @@ const SignupForm = () => {
         fetchCaptcha().catch((err) => console.log('Error calling fetchCaptcha: ', err));
     };
 
-
-
     // fetch captcha image
     useEffect(() => {
         fetchCaptcha().catch((err) => console.log('Error calling fetchCaptcha: ', err));
@@ -62,7 +59,6 @@ const SignupForm = () => {
             }
         };
     }, []);
-
 
     // update form data when user types
     const handleChange = (e) => {
@@ -229,8 +225,6 @@ const SignupForm = () => {
                         </div>
                     </div>
                 </div>
-
-
             </form>
         </React.Fragment>
     );

@@ -11,7 +11,7 @@ function Header() {
             <nav>
                 <div className="padding-top padding-left">
                     <Link to="/">
-                        <Logo height={"75px"} width={"75px"}/>
+                        <Logo className="header-logo"/>
                     </Link>
                 </div>
                 <div className="padding-right gapped-row">

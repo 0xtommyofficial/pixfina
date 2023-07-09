@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleLogout } from './helpers';
 
 const apiClient = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
@@ -13,5 +14,19 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+apiClient.interceptors.response.use(
+    response => {
+      return response;
+    },
+        error => {
+      if (error.response && error.response.status === 401) {
+        handleLogout();
+        window.location = "/";
+      } else {
+        return Promise.reject(error);
+      }
+    }
+);
 
 export default apiClient;

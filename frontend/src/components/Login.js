@@ -93,7 +93,7 @@ const Login = ({ onSuccess }) => {
                 </div>
               <div className="form-row pegged-right">
                 <div className="form-group">
-                  <button className="form-button" type="submit">Submit</button>
+                  <button className="form-button" type="submit">Login</button>
                 </div>
               </div>
             </div>

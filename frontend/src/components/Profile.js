@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 import { useNavigate } from 'react-router-dom';
 import apiClient from './apiClient';
 import useRedirectIfNotLoggedIn from './useRedirectIfNotLoggedIn';
 
 const Profile = () => {
+
     useRedirectIfNotLoggedIn();
+
     const navigate = useNavigate();
     const [user, setUser] = useState({});
     const [isEmailEditing, setEmailEditing] = useState(false);
@@ -45,28 +48,41 @@ const Profile = () => {
         // get the user's favourites
         apiClient.get('/favourites/')
             .then(res => {
+
                 setFavourites(res.data);
+
                 // set the first favourite as the selected one
                 if (res.data.length > 0) {
-                    setSelectedFavourite(res.data[0]);
+                    setSelectedFavourite({ value: res.data[0].id, label: res.data[0].title });
                 }
             })
             .catch(err => { console.error(err); });
     }, []);
 
-    const handleFavouriteSelection = (e) => {
-        const selectedFav = favourites.find(fav => fav.id === Number(e.target.value));
-        setSelectedFavourite(selectedFav);
+
+    const options = favourites.map(favourite => (
+        { value: favourite.id, label: favourite.title }
+    ));
+
+    const handleFavouriteSelection = selectedOption => {
+        setSelectedFavourite(selectedOption);
     };
-    const handleFavouriteRemove = (mediaId) => {
-        apiClient.delete(`/favourite_media/${mediaId}/`)
-            .then(() => setFavourites(favourites.filter(fav => fav.id !== mediaId)))
-            .catch(err => console.error(err));
+
+    const handleFavouriteRemove = () => {
+
+        if (selectedFavourite) {
+            apiClient.delete(`/favourite_media/${selectedFavourite.value}/`)
+                .then(() => {
+                    setFavourites(favourites.filter(fav => fav.id !== selectedFavourite.value));
+                    setSelectedFavourite(null); // reset selected favourite
+                })
+                .catch(err => console.error(err));
+        }
     };
 
     const handleEmailChange = () => {
         if (!oldPassword || !email || !repeatEmail || email !== repeatEmail) {
-            setError('Please enter all fields');
+            setError('Please enter all fields correctly');
             return;
         }
 
@@ -125,44 +141,62 @@ const Profile = () => {
     return (
         <React.Fragment>
             <h1>User Details</h1>
-            <h2>Name: {user.firstName} {user.lastName}</h2>
-            <h2>Email: {user.email}</h2>
-            {error && <p>{error}</p>} {/* display error message */}
-            {isEmailEditing &&
-                <div>
-                    <input type="password" placeholder="Enter your password" onChange={e => setOldPassword(e.target.value)} />
-                    <input type="email" placeholder="Enter new email" onChange={e => setEmail(e.target.value)} />
-                    <input type="email" placeholder="Repeat new email" onChange={e => setRepeatEmail(e.target.value)} />
-                    <button onClick={handleEmailChange} disabled={isEmailLoading}>Submit</button>
+            <div className="profile-container padded-container">
+                {error && <p>{error}</p>} {/* display error message */}
+                <h2>Name: {user.firstName} {user.lastName}</h2>
+                <h2>Email: {user.email}</h2>
+                <h2>Favourites</h2>
+                {favourites.length > 0 ?
+                    <div>
+                        <Select
+                            className="react-select-container"
+                            classNamePrefix="react-select"
+                            options={options}
+                            onChange={handleFavouriteSelection}
+                            value={selectedFavourite}
+                        />
+                        {selectedFavourite && <div className="gapped-column centered-column">
+                            <h3>{selectedFavourite.label}</h3>
+                            <img src={selectedFavourite.previewImageUrl} alt={selectedFavourite.label} />
+                            <button className="form-button"
+                                    onClick={() => handleFavouriteRemove(selectedFavourite.value)}>Remove</button>
+                        </div>}
+                    </div>
+                    : <p>No favourites found</p>}
+                <div className="gapped-row padded-container">
+                    <button onClick={() => setEmailEditing(!isEmailEditing)}>Change Email</button>
+                    <button onClick={() => setPasswordEditing(!isPasswordEditing)}>Change Password</button>
                 </div>
-            }
-            <button onClick={() => setEmailEditing(!isEmailEditing)}>Change Email</button>
-            {isPasswordEditing &&
-                <div>
-                    <input type="password" placeholder="Old Password" onChange={e => setOldPassword(e.target.value)} />
-                    <input type="password" placeholder="New Password" onChange={e => setNewPassword(e.target.value)} />
-                    <input type="password" placeholder="Repeat New Password" onChange={e => setRepeatPassword(e.target.value)} />
-                    <button onClick={handlePasswordChange} disabled={isPasswordLoading}>Submit</button>
-
+                <div className="gapped-column">
+                    {isEmailEditing &&
+                        <div className="edit-form">
+                            <input className="form-input" type="email" placeholder="Enter new email"
+                                   onChange={e => setEmail(e.target.value)} />
+                            <input className="form-input" type="email" placeholder="Repeat new email"
+                                   onChange={e => setRepeatEmail(e.target.value)} />
+                            <input className="form-input" type="password" placeholder="Enter your password"
+                                   onChange={e => setOldPassword(e.target.value)} />
+                            <button className="form-button" onClick={handleEmailChange}
+                                    disabled={isEmailLoading}>Submit</button>
+                        </div>
+                    }
+                    {isPasswordEditing &&
+                        <div className="edit-form">
+                            <input className="form-input" type="password" placeholder="Old Password"
+                                   onChange={e => setOldPassword(e.target.value)} />
+                            <input className="form-input" type="password" placeholder="New Password"
+                                   onChange={e => setNewPassword(e.target.value)} />
+                            <input className="form-input" type="password" placeholder="Repeat New Password"
+                                   onChange={e => setRepeatPassword(e.target.value)} />
+                            <button className="form-button" onClick={handlePasswordChange}
+                                    disabled={isPasswordLoading}>Submit</button>
+                        </div>
+                    }
                 </div>
-            }
-            <button onClick={() => setPasswordEditing(!isPasswordEditing)}>Change Password</button>
-            <h2>Favourites</h2>
-            {favourites.length > 0 ?
-                <div>
-                    <select onChange={handleFavouriteSelection}>
-                        {favourites.map(favourite => (
-                            <option key={favourite.id} value={favourite.id}>{favourite.title}</option>
-                        ))}
-                    </select>
-                    {selectedFavourite && <div>
-                        <h3>{selectedFavourite.title}</h3>
-                        <img src={selectedFavourite.previewImageUrl} alt={selectedFavourite.title} />
-                        <button onClick={() => handleFavouriteRemove(selectedFavourite.id)}>Remove</button>
-                    </div>}
+                <div className="centered-column padding-top">
+                    <button onClick={() => navigate('/landing')}>Home</button>
                 </div>
-                : <p>No favourites found</p>}
-            <button onClick={() => navigate('/landing')}>Home</button>
+            </div>
         </React.Fragment>
     );
 };

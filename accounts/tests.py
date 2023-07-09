@@ -11,19 +11,19 @@ from media.models import StockMedia
 
 class AccountTests(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(email='test@example.com', password='testpassword')
+        cls.token = Token.objects.create(user=cls.user)
+
+        # cls.media1 = StockMedia.objects.create(description='Test Media 1', media_type='P')
+        # cls.media2 = StockMedia.objects.create(description='Test Media 2', media_type='V')
+        # cls.media3 = StockMedia.objects.create(description='Test Media 3', media_type='P')
+        # print(StockMedia.objects.values('id', 'description'))
+
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(email='test@example.com', password='testpassword')
-        self.token = Token.objects.create(user=self.user)
         self.client.force_authenticate(user=self.user)
-
-        # Create some StockMedia object
-        # self.media1 = StockMedia.objects.create(description='Test Media 1', media_type='P')
-        # self.media2 = StockMedia.objects.create(description='Test Media 2', media_type='V')
-        # self.media3 = StockMedia.objects.create(description='Test Media 3', media_type='P')
-
-    def tearDown(self):
-        self.client.force_authenticate(user=None)
 
     def test_register_user(self):
         user = get_user_model()

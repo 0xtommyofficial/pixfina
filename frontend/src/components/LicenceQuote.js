@@ -38,12 +38,18 @@ const LicenceQuote = () => {
             name,
             email,
             phone_number: phoneNumber,
-            selected_favourites: selectedFavourites.map(fav => fav.value),
+            media: selectedFavourites.map(fav => fav.value),
             message,
         };
 
-        apiClient.post('/licence_quote/', quote)
-            .then(res => console.log(res.data));
+        apiClient.post('/licence_quotes/', quote)
+            .then((res) => {
+                alert("Your enquiry has been submitted!");
+                setName('');
+                setEmail('');
+                setPhoneNumber('');
+                setMessage('');
+            });
     }
 
     if (!isLoggedIn && !justLoggedIn) {
@@ -65,38 +71,11 @@ const LicenceQuote = () => {
                             <div className="form-group">
                                 <h3>Favourites</h3>
                                 <Select
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
                                     isMulti
                                     options={favourites}
                                     onChange={handleSelectChange}
-                                    styles={{
-                                        control: (base, state) => ({
-                                            ...base,
-                                            background: "#fff",
-                                            borderColor: state.isFocused ? "#7367f0" : "#7367f0",
-                                            boxShadow: state.isFocused ? "0 0 0 0.2rem rgba(115, 103, 240, .25)" : null,
-                                            "&:hover": {
-                                                borderColor: state.isFocused ? "#7367f0" : "#7367f0"
-                                            }
-                                        }),
-                                        menu: base => ({
-                                            ...base,
-                                            borderRadius: 0,
-                                            marginTop: 0,
-                                            width: '100%'
-                                        }),
-                                        menuList: base => ({
-                                            ...base,
-                                            padding: 0
-                                        }),
-                                        option: (base, state) => ({
-                                            ...base,
-                                            background: state.isSelected ? "#7367f0" : state.isFocused ? "#eee" : "#fff",
-                                            color: state.isSelected ? "#fff" : "#333",
-                                            "&:hover": {
-                                                background: state.isSelected ? "#7367f0" : "#eee"
-                                            }
-                                        }),
-                                    }}
                                 />
 
                             </div>
@@ -106,7 +85,10 @@ const LicenceQuote = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Name</h3>
-                                <input className="form-input" type="text" onChange={e => setName(e.target.value)} placeholder="Name" />
+                                <input className="form-input" type="text"
+                                       onChange={e => setName(e.target.value)}
+                                       placeholder="Name"
+                                       value={name} />
                             </div>
                         </div>
                     </div>
@@ -114,13 +96,19 @@ const LicenceQuote = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Email</h3>
-                                <input className="form-input" type="email" onChange={e => setEmail(e.target.value)} placeholder="Email" />
+                                <input className="form-input" type="email"
+                                       onChange={e => setEmail(e.target.value)}
+                                       placeholder="Email"
+                                       value={email} />
                             </div>
                         </div>
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Phone Number</h3>
-                                <input className="form-input" type="text" onChange={e => setPhoneNumber(e.target.value)} placeholder="Phone Number" />
+                                <input className="form-input" type="text"
+                                       onChange={e => setPhoneNumber(e.target.value)}
+                                       placeholder="Phone Number"
+                                       value={phoneNumber} />
                             </div>
                         </div>
                     </div>
@@ -128,7 +116,10 @@ const LicenceQuote = () => {
                         <div className="full-width padded-container">
                             <div className="form-group">
                                 <h3>Message</h3>
-                                <textarea className="disableResize form-input message-box" onChange={e => setMessage(e.target.value)} placeholder="Message"></textarea>
+                                <textarea className="disableResize form-input message-box"
+                                          onChange={e => setMessage(e.target.value)}
+                                          placeholder="Message" value={message}>
+                                </textarea>
                             </div>
                         </div>
                     </div>
