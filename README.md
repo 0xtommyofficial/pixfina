@@ -28,12 +28,8 @@ However, it is a convenient way to serve the frontend for small scale production
 - [x] Stock Media API
 - [x] Style General Front End
 - [x] Style Forms
-- [ ] Create a licence model (terms and conditions, price, duration, etc.)
-- [ ] Integrate licences with user accounts
-- [ ] Style Media Galleries
-- [ ] Style User Settings Page
-- [ ] Update forms to be one page with conditional rendering
-- [ ] Add content download to user settings page for shoot results
+- [x] Style Media Galleries
+- [x] Style User Settings Page
 ### Future Features
 - [ ] Add Stripe and PayPal payment integration
 - [ ] Add shopping cart for stock media licences
